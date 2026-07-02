@@ -10,6 +10,7 @@ import { ThreeBackground } from './core/ThreeBackground.js';
 import { WorldMapSystem } from './components/WorldMapSystem.js';
 import { MissionView } from './components/MissionView.js';
 import { StatsPanel } from './components/StatsPanel.js';
+import { RevisionModule } from './components/RevisionModule.js';
 import { WORLDS } from './data/worlds.js';
 import { JAVA_ACADEMY_MISSIONS } from './data/missions/java-academy.js';
 import { REST_API_MISSIONS } from './data/missions/rest-api-dept.js';
@@ -49,7 +50,7 @@ class SpringQuestApp {
 
     // Record daily activity
     const streak = this.gam.recordDailyActivity();
-    
+
     // Setup cheat code
     this._setupCheatCode();
 
@@ -62,20 +63,27 @@ class SpringQuestApp {
       if (streak.isNew && streak.count > 1) {
         setTimeout(() => this.anim.showXPGain(streak.count * 10, window.innerWidth / 2, 100), 500);
       }
-    }, 1500);
+    }, 4500);
   }
 
   _renderHeader() {
     const s = this.gsm.getState();
     const xpProg = this.gam.getXPProgress();
     const header = document.createElement('div');
-    header.className = 'game-header';
-    header.id = 'game-header';
+    header.className = 'app-header';
     header.innerHTML = `
-      <div class="header-logo designer-text" id="header-logo" style="font-size:1.4rem;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:middle;color:var(--accent-blue);"><polygon points="12 2 2 22 12 18 22 22 12 2"></polygon></svg>
-        SpringQuest
+      <div style="display:flex; align-items:center; gap:0.75rem">
+        <div class="logo-container" id="header-logo" style="cursor:pointer; display:flex; flex-direction:column;">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+            <span class="designer-text" style="font-size: 1.1rem;">SpringQuest</span>
+          </div>
+          <span style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.15em; margin-top:2px; padding-left: 2px;">
+            by <span style="background:linear-gradient(90deg, #10b981, #3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;">Saket Saurav</span>
+          </span>
+        </div>
       </div>
+      
       <div class="header-stats">
         <div class="stat-item editable" id="edit-player-name" title="Click to edit name">
           <svg class="stat-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -114,11 +122,17 @@ class SpringQuestApp {
           <span style="color:#f97316; font-weight:700;">${s.dailyStreak}</span>
         </div>` : ''}
       </div>
-      <div id="header-actions" style="display:flex;gap:0.5rem"></div>
+      <div id="header-actions" style="display:flex;gap:0.5rem">
+        <button class="header-nav-btn" id="btn-knowledge-hub" title="Knowledge Hub">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          <span class="header-nav-label">Knowledge Hub</span>
+        </button>
+      </div>
     `;
     this.appEl.insertBefore(header, this.appEl.firstChild);
     header.querySelector('#header-logo').addEventListener('click', () => this._showWorldMap());
-    
+    header.querySelector('#btn-knowledge-hub').addEventListener('click', () => this._showRevision());
+
     // Edit Player Name
     const nameBtn = header.querySelector('#edit-player-name');
     if (nameBtn) {
@@ -137,7 +151,7 @@ class SpringQuestApp {
   }
 
   _updateHeader() {
-    const old = document.getElementById('game-header');
+    const old = document.querySelector('.app-header');
     if (old) old.remove();
     this._renderHeader();
   }
@@ -146,17 +160,34 @@ class SpringQuestApp {
     this._updateHeader();
     const content = document.createElement('div');
     content.id = 'main-content';
+    content.style.flex = '1';
     const existing = document.getElementById('main-content');
     if (existing) existing.remove();
     this.appEl.appendChild(content);
     this.worldMap.onMissionSelect = (missionId) => this._showMission(missionId);
     this.worldMap.render(content);
+    this._renderFooter();
+  }
+
+  _showRevision() {
+    this._updateHeader();
+    const content = document.createElement('div');
+    content.id = 'main-content';
+    content.style.flex = '1';
+    const existing = document.getElementById('main-content');
+    if (existing) existing.remove();
+    this.appEl.appendChild(content);
+    const rev = new RevisionModule(this.gsm, this.anim);
+    rev.onBack = () => this._showWorldMap();
+    rev.render(content);
+    this._renderFooter();
   }
 
   async _showMission(missionId) {
     this._updateHeader();
     const content = document.createElement('div');
     content.id = 'main-content';
+    content.style.flex = '1';
     const existing = document.getElementById('main-content');
     if (existing) existing.remove();
     this.appEl.appendChild(content);
@@ -166,37 +197,62 @@ class SpringQuestApp {
       this._showWorldMap();
     };
     await this.missionView.render(content, missionId);
+    this._renderFooter();
+  }
+
+  _renderFooter() {
+    let footer = document.getElementById('app-footer');
+    if (!footer) {
+      footer = document.createElement('footer');
+      footer.id = 'app-footer';
+      footer.className = 'app-footer';
+      this.appEl.appendChild(footer);
+    }
+    footer.innerHTML = `
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="designer-text" style="font-size:0.85rem;color:var(--text-primary);">SpringQuest</span>
+          <span style="color:var(--text-muted);font-size:0.75rem;margin:0 0.5rem;">|</span>
+          <span style="font-size:0.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;">
+            Engineered by <strong style="background:linear-gradient(90deg, #10b981, #3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;">Saket Saurav</strong>
+          </span>
+        </div>
+        <div class="footer-links">
+          <a href="#" onclick="event.preventDefault(); document.getElementById('btn-knowledge-hub').click();" class="footer-link">Knowledge Hub</a>
+        </div>
+      </div>
+    `;
   }
 
   _setupCheatCode() {
     let keyBuffer = '';
-    
+
     document.addEventListener('keydown', (e) => {
       // Don't listen to keypresses inside the editor (monaco) or textareas/inputs
       if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-      
+
       keyBuffer += e.key.toLowerCase();
       if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10);
-      
+
       if (keyBuffer.endsWith('unlock')) {
         console.log("Cheat code activated! Unlocking all levels...");
         keyBuffer = ''; // Reset buffer
-        
+
         const allWorlds = WORLDS.map(w => w.id);
         const allMissions = Array.from(this.mm.missions.values()).map(m => m.id);
         this.gsm.unlockAll(allWorlds, allMissions);
-        
+
         this.anim.showSystemMessage("System Bypassed", "All Modules and Missions Unlocked.", "success");
         this._refreshView();
-      } 
+      }
       else if (keyBuffer.endsWith('lock')) {
         console.log("Cheat code activated! Locking uncompleted levels...");
         keyBuffer = ''; // Reset buffer
-        
+
         // Rebuild legitimate unlocks based on completed missions
         const unlockedW = new Set(['java-academy']);
         const unlockedM = new Set(['ja-001']);
-        
+
         const state = this.gsm.getState();
         if (state && state.completedMissions) {
           for (const mId of state.completedMissions) {
@@ -204,11 +260,11 @@ class SpringQuestApp {
             const mission = this.mm.missions.get(mId);
             if (mission) {
               unlockedW.add(mission.worldId);
-              
+
               // Next mission logic
               const nextM = this.mm.getNextMission(mId);
               if (nextM) unlockedM.add(nextM.id);
-              
+
               if (this.mm.isWorldComplete(mission.worldId)) {
                 // Safely get next world by using WORLDS array
                 const currentWorldIndex = WORLDS.findIndex(w => w.id === mission.worldId);
@@ -218,7 +274,7 @@ class SpringQuestApp {
             }
           }
         }
-        
+
         this.gsm.lockAll(Array.from(unlockedW), Array.from(unlockedM));
         this.anim.showSystemMessage("System Locked", "Progression Reset to Valid State.", "error");
         this._refreshView();

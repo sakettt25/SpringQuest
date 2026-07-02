@@ -80,18 +80,28 @@ export class GamificationSystem {
   recordDailyActivity() {
     const s = this.gsm.getState();
     if (!s) return { continued: false, count: 0 };
-    const today = new Date().toDateString();
-    if (s.lastStreakDate === today) return { continued: true, count: s.dailyStreak, isNew: false };
-
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    if (s.lastStreakDate === yesterday) {
-      s.dailyStreak++;
-    } else if (s.lastStreakDate) {
-      s.dailyStreak = 1;
-    } else {
-      s.dailyStreak = 1;
+    
+    const now = new Date();
+    const todayStr = now.toDateString();
+    
+    if (s.lastStreakDate === todayStr) {
+      return { continued: true, count: s.dailyStreak, isNew: false };
     }
-    s.lastStreakDate = today;
+    
+    if (s.lastStreakDate) {
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      
+      if (s.lastStreakDate === yesterday.toDateString()) {
+        s.dailyStreak++;
+      } else {
+        s.dailyStreak = 1; // Broken streak
+      }
+    } else {
+      s.dailyStreak = 1; // First ever activity
+    }
+    
+    s.lastStreakDate = todayStr;
     if (s.dailyStreak > s.longestStreak) s.longestStreak = s.dailyStreak;
     this.gsm.saveGame();
     return { continued: true, count: s.dailyStreak, isNew: true };
