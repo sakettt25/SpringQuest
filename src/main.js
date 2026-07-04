@@ -173,6 +173,10 @@ class SpringQuestApp {
     const content = document.createElement('div');
     content.id = 'main-content';
     content.style.flex = '1';
+    content.style.display = 'flex';
+    content.style.flexDirection = 'column';
+    content.style.minHeight = '0';
+    content.style.overflowY = 'auto';
     const existing = document.getElementById('main-content');
     if (existing) existing.remove();
     this.appEl.appendChild(content);
@@ -186,6 +190,10 @@ class SpringQuestApp {
     const content = document.createElement('div');
     content.id = 'main-content';
     content.style.flex = '1';
+    content.style.display = 'flex';
+    content.style.flexDirection = 'column';
+    content.style.minHeight = '0';
+    content.style.overflowY = 'auto';
     const existing = document.getElementById('main-content');
     if (existing) existing.remove();
     this.appEl.appendChild(content);
@@ -200,6 +208,10 @@ class SpringQuestApp {
     const content = document.createElement('div');
     content.id = 'main-content';
     content.style.flex = '1';
+    content.style.display = 'flex';
+    content.style.flexDirection = 'column';
+    content.style.minHeight = '0';
+    content.style.overflowY = 'hidden'; // IDE should not scroll at the page level
     const existing = document.getElementById('main-content');
     if (existing) existing.remove();
     this.appEl.appendChild(content);
@@ -209,7 +221,10 @@ class SpringQuestApp {
       this._showWorldMap();
     };
     await this.missionView.render(content, missionId);
-    this._renderFooter();
+    
+    // Do not render footer in Mission View to prevent overlap with full-height layout
+    const oldFooter = document.getElementById('app-footer');
+    if (oldFooter) oldFooter.remove();
   }
 
   _renderFooter() {

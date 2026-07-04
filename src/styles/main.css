@@ -64,8 +64,11 @@ body {
 }
 
 #app {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   position: relative;
+  overflow: hidden;
 }
 
 .pixel-font {
@@ -728,7 +731,8 @@ body {
 .mission-view {
   display: grid;
   grid-template-columns: minmax(400px, 1fr) 1.5fr;
-  height: calc(100vh - 60px);
+  flex: 1;
+  min-height: 0;
 }
 
 .mission-sidebar {
@@ -736,12 +740,16 @@ body {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  min-width: 0;
 }
 
 .mission-editor-area {
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
+  min-height: 0;
+  min-width: 0;
 }
 
 .back-btn {
@@ -909,6 +917,7 @@ body {
   top: 0;
   z-index: 100;
   box-shadow: var(--shadow);
+  flex-shrink: 0;
 }
 
 .header-logo {
@@ -936,6 +945,9 @@ body {
 .editor-container {
   flex: 1;
   position: relative;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .editor-container textarea {
@@ -2463,6 +2475,7 @@ mark {
   border-top: 1px solid var(--border);
   background: var(--bg-card);
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
 .footer-content {

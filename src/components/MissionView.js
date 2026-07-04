@@ -35,7 +35,7 @@ export class MissionView {
             <div class="lc-tab active" data-tab="desc" style="cursor:pointer;">${descIcon}Description</div>
             <div class="lc-tab" data-tab="solution" style="cursor:pointer; color: var(--text-muted);">${solIcon}Solution</div>
           </div>
-          <div class="lc-content" style="padding: 1.5rem; overflow-y: auto; height: calc(100% - 40px);">
+          <div class="lc-content" style="padding: 1.5rem; overflow-y: auto; flex: 1; min-height: 0;">
             <div id="tab-content-desc">
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
                 <h2 style="font-size:1.4rem; font-weight: 600; letter-spacing:-0.02em;">${m.order}. ${m.title}</h2>
