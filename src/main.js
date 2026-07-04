@@ -13,7 +13,13 @@ import { StatsPanel } from './components/StatsPanel.js';
 import { RevisionModule } from './components/RevisionModule.js';
 import { WORLDS } from './data/worlds.js';
 import { JAVA_ACADEMY_MISSIONS } from './data/missions/java-academy.js';
+import { OOP_CITY_MISSIONS } from './data/missions/oop-city.js';
+import { COLLECTIONS_KINGDOM_MISSIONS } from './data/missions/collections-kingdom.js';
+import { STREAMS_LAMBDA_MISSIONS } from './data/missions/streams-lambda-lab.js';
+import { SPRING_CORE_MISSIONS } from './data/missions/spring-core-campus.js';
+import { SPRING_BOOT_OFFICE_MISSIONS } from './data/missions/spring-boot-office.js';
 import { REST_API_MISSIONS } from './data/missions/rest-api-dept.js';
+import { DATABASE_DIVISION_MISSIONS } from './data/missions/database-division.js';
 import { REACTIVE_LAB_MISSIONS } from './data/missions/reactive-lab.js';
 import { WEBFLUX_HQ_MISSIONS } from './data/missions/webflux-hq.js';
 import { ENTERPRISE_TOWER_MISSIONS } from './data/missions/enterprise-tower.js';
@@ -39,7 +45,13 @@ class SpringQuestApp {
     this.threeBg = new ThreeBackground();
     // Register all world missions
     this.mm.registerMissions(JAVA_ACADEMY_MISSIONS);
+    this.mm.registerMissions(OOP_CITY_MISSIONS);
+    this.mm.registerMissions(COLLECTIONS_KINGDOM_MISSIONS);
+    this.mm.registerMissions(STREAMS_LAMBDA_MISSIONS);
+    this.mm.registerMissions(SPRING_CORE_MISSIONS);
+    this.mm.registerMissions(SPRING_BOOT_OFFICE_MISSIONS);
     this.mm.registerMissions(REST_API_MISSIONS);
+    this.mm.registerMissions(DATABASE_DIVISION_MISSIONS);
     this.mm.registerMissions(REACTIVE_LAB_MISSIONS);
     this.mm.registerMissions(WEBFLUX_HQ_MISSIONS);
     this.mm.registerMissions(ENTERPRISE_TOWER_MISSIONS);
@@ -102,7 +114,7 @@ class SpringQuestApp {
         <div class="stat-group xp-group" title="Experience: ${s.totalXP} XP">
           <div class="xp-info">
             <span class="xp-label">XP</span>
-            <span class="xp-value designer-text" style="font-size:1rem;">${s.totalXP}</span>
+            <span class="xp-value" style="font-size:0.9rem;color:var(--text-primary);font-family:var(--font-mono);font-weight:700;">${s.totalXP}</span>
           </div>
           <div class="xp-bar-container">
             <div class="xp-bar-fill" style="width:${xpProg.percent}%"></div>
@@ -112,14 +124,14 @@ class SpringQuestApp {
         <div class="stat-divider"></div>
 
         <div class="stat-item coin-item" title="Coins: ${s.coins}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 4px rgba(251,191,36,0.6));"><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-          <span class="stat-value" style="color: #fbbf24; font-size: 0.9rem; text-shadow: 0 0 10px rgba(251,191,36,0.3);">${s.coins}</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          <span class="stat-value" style="color:#fbbf24;font-size:0.85rem;font-family:var(--font-mono);font-weight:700;">${s.coins}</span>
         </div>
 
         ${s.dailyStreak > 0 ? `
         <div class="streak-badge" title="Daily Streak: ${s.dailyStreak} Days">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:middle;filter: drop-shadow(0 0 4px rgba(249,115,22,0.6));"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
-          <span style="color:#f97316; font-weight:700;">${s.dailyStreak}</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:3px;vertical-align:middle;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+          <span style="color:#f97316;font-weight:700;font-family:var(--font-mono);font-size:0.82rem;">${s.dailyStreak}</span>
         </div>` : ''}
       </div>
       <div id="header-actions" style="display:flex;gap:0.5rem">
@@ -201,13 +213,12 @@ class SpringQuestApp {
   }
 
   _renderFooter() {
-    let footer = document.getElementById('app-footer');
-    if (!footer) {
-      footer = document.createElement('footer');
-      footer.id = 'app-footer';
-      footer.className = 'app-footer';
-      this.appEl.appendChild(footer);
-    }
+    const old = document.getElementById('app-footer');
+    if (old) old.remove();
+    const footer = document.createElement('footer');
+    footer.id = 'app-footer';
+    footer.className = 'app-footer';
+    this.appEl.appendChild(footer);
     footer.innerHTML = `
       <div class="footer-content">
         <div class="footer-brand">
@@ -254,7 +265,7 @@ class SpringQuestApp {
         const unlockedM = new Set(['ja-001']);
 
         const state = this.gsm.getState();
-        if (state && state.completedMissions) {
+        if (state?.completedMissions) {
           for (const mId of state.completedMissions) {
             unlockedM.add(mId);
             const mission = this.mm.missions.get(mId);

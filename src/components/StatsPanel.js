@@ -31,51 +31,116 @@ export class StatsPanel {
     const s = this.gsm.getState();
     if (!s || !this.panel) return;
     const xpProg = this.gam.getXPProgress();
+
+    const rankColors = {
+      bronze:  { color: '#cd7f32', bg: 'rgba(205,127,50,0.1)'  },
+      silver:  { color: '#9ca3af', bg: 'rgba(156,163,175,0.1)' },
+      gold:    { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)'  },
+      diamond: { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)'  },
+      master:  { color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)'  },
+      legend:  { color: '#ec4899', bg: 'rgba(236,72,153,0.1)'  },
+    };
+    const rank = s.currentRank?.toLowerCase() || 'bronze';
+    const rc = rankColors[rank] || rankColors.bronze;
+
+    const initials = (s.playerName || 'Dev').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+    const avgPct = Math.round(s.averageScore || 0);
+
     this.panel.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-        <h2 style="font-size:1.1rem; display:flex; align-items:center; gap:0.5rem;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          Player Profile
-        </h2>
-        <button class="close-btn" id="close-stats">&times;</button>
+      <div class="sp-header">
+        <span class="sp-title">Player Profile</span>
+        <button class="sp-close" id="close-stats" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
-      <div class="stats-section">
-        <div class="stats-section-title">Identity</div>
-        <div class="stat-row"><span class="stat-label">Name</span><span class="stat-value">${s.playerName}</span></div>
-        <div class="stat-row"><span class="stat-label">Rank</span><span class="rank-badge rank-${s.currentRank.toLowerCase()}">${s.currentRank}</span></div>
-        <div class="stat-row"><span class="stat-label">Level</span><span class="stat-value">${s.currentLevel}</span></div>
+
+      <!-- Identity card -->
+      <div class="sp-identity">
+        <div class="sp-avatar" style="background:${rc.bg};border-color:${rc.color}30;color:${rc.color}">${initials}</div>
+        <div class="sp-identity-info">
+          <div class="sp-name">${s.playerName}</div>
+          <div class="sp-rank-badge" style="background:${rc.bg};border-color:${rc.color}50;color:${rc.color}">
+            ${s.currentRank}
+          </div>
+        </div>
+        <div class="sp-level-block">
+          <div class="sp-level-num">${s.currentLevel}</div>
+          <div class="sp-level-label">LV</div>
+        </div>
       </div>
-      <div class="stats-section">
-        <div class="stats-section-title">Experience</div>
-        <div class="stat-row"><span class="stat-label">Total XP</span><span class="stat-value" style="color:var(--accent-yellow)">${s.totalXP}</span></div>
-        <div style="margin:0.3rem 0"><div class="xp-bar-mini" style="width:100%"><div class="xp-bar-mini-fill" style="width:${xpProg.percent}%"></div></div></div>
-        <div class="stat-row"><span class="stat-label">To Next Level</span><span class="stat-value">${Math.max(0, xpProg.needed - xpProg.current)} XP</span></div>
-        <div class="stat-row"><span class="stat-label">Coins</span><span class="stat-value" style="color:var(--accent-yellow)">${s.coins}</span></div>
+
+      <!-- XP Progress -->
+      <div class="sp-section">
+        <div class="sp-section-label">Experience</div>
+        <div class="sp-xp-row">
+          <span class="sp-xp-val">${s.totalXP.toLocaleString()} XP</span>
+          <span class="sp-xp-next">${Math.max(0, xpProg.needed - xpProg.current)} to next level</span>
+        </div>
+        <div class="sp-progress-track">
+          <div class="sp-progress-fill" style="width:${xpProg.percent}%"></div>
+        </div>
+        <div class="sp-progress-pct">${xpProg.percent}%</div>
       </div>
-      <div class="stats-section">
-        <div class="stats-section-title">Progress</div>
-        <div class="stat-row"><span class="stat-label">Missions Completed</span><span class="stat-value">${s.totalMissionsCompleted}</span></div>
-        <div class="stat-row"><span class="stat-label">Perfect Scores</span><span class="stat-value">${s.perfectScores}</span></div>
-        <div class="stat-row"><span class="stat-label">Avg Score</span><span class="stat-value">${Math.round(s.averageScore)}%</span></div>
-        <div class="stat-row"><span class="stat-label">Total Attempts</span><span class="stat-value">${s.totalAttempts}</span></div>
+
+      <!-- Stats grid -->
+      <div class="sp-section">
+        <div class="sp-section-label">Progress</div>
+        <div class="sp-stats-grid">
+          <div class="sp-stat-cell">
+            <div class="sp-stat-num">${s.totalMissionsCompleted}</div>
+            <div class="sp-stat-desc">Completed</div>
+          </div>
+          <div class="sp-stat-cell">
+            <div class="sp-stat-num">${s.perfectScores}</div>
+            <div class="sp-stat-desc">Perfect</div>
+          </div>
+          <div class="sp-stat-cell">
+            <div class="sp-stat-num">${avgPct}%</div>
+            <div class="sp-stat-desc">Avg Score</div>
+          </div>
+          <div class="sp-stat-cell">
+            <div class="sp-stat-num">${s.coins}</div>
+            <div class="sp-stat-desc">Coins</div>
+          </div>
+        </div>
       </div>
-      <div class="stats-section">
-        <div class="stats-section-title">Streaks</div>
-        <div class="stat-row"><span class="stat-label">Daily Streak</span><span class="stat-value">${s.dailyStreak}</span></div>
-        <div class="stat-row"><span class="stat-label">Longest</span><span class="stat-value">${s.longestStreak}</span></div>
+
+      <!-- Streaks -->
+      <div class="sp-section">
+        <div class="sp-section-label">Streaks</div>
+        <div class="sp-streak-row">
+          <div class="sp-streak-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+            <span class="sp-streak-num" style="color:#f97316">${s.dailyStreak}</span>
+            <span class="sp-streak-desc">Current</span>
+          </div>
+          <div class="sp-streak-divider"></div>
+          <div class="sp-streak-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span class="sp-streak-num" style="color:var(--accent-yellow)">${s.longestStreak}</span>
+            <span class="sp-streak-desc">Best</span>
+          </div>
+        </div>
       </div>
-      <div class="stats-section">
-        <div class="stats-section-title">Achievements</div>
-        <div class="stat-row"><span class="stat-label">Unlocked</span><span class="stat-value">${s.achievements.length}</span></div>
+
+      <!-- Achievements -->
+      <div class="sp-section">
+        <div class="sp-section-label">Achievements</div>
+        <div class="sp-achieve-row">
+          <span class="sp-achieve-count">${s.achievements.length}</span>
+          <span class="sp-achieve-label">unlocked</span>
+        </div>
       </div>
-      <div style="margin-top: 1.5rem; text-align: center;">
-        <button class="btn btn-ghost" id="btn-reset-progress" style="color: var(--accent-red); font-size: 0.75rem; border: 1px solid var(--accent-red);">⚠️ Reset All Progress</button>
+
+      <div class="sp-footer">
+        <button class="sp-reset-btn" id="btn-reset-progress">Reset All Progress</button>
       </div>
     `;
+
     this.panel.querySelector('#close-stats').addEventListener('click', () => this.toggle());
-    
     this.panel.querySelector('#btn-reset-progress').addEventListener('click', () => {
-      if (confirm('Are you sure you want to reset ALL your progress? This cannot be undone.')) {
+      if (confirm('Reset ALL progress? This cannot be undone.')) {
         localStorage.removeItem('springquest_v1');
         window.location.reload();
       }

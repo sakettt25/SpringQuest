@@ -13,23 +13,12 @@ export class RevisionModule {
     const wrapper = document.createElement('div');
     wrapper.className = 'revision-container';
     wrapper.innerHTML = `
-      <div class="revision-header">
-        <div>
-          <h1 class="revision-title">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:8px;color:var(--accent-blue);">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
-            Knowledge Hub
-          </h1>
-          <p class="revision-subtitle">Master every concept from Java fundamentals to Reactive Spring Boot</p>
-        </div>
+      <div class="revision-tabs-row">
         <button class="back-btn" id="rev-back-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          Back to Curriculum
+          Back
         </button>
-      </div>
-
-      <div class="revision-tabs" id="revision-tabs">
+        <div class="revision-tabs" id="revision-tabs">
         <button class="rev-tab active" data-tab="concepts">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
           Concepts
@@ -46,6 +35,7 @@ export class RevisionModule {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
           Resources
         </button>
+        </div>
       </div>
 
       <div id="revision-content" class="revision-content"></div>
@@ -85,40 +75,76 @@ export class RevisionModule {
 
   // ─── CONCEPTS TAB ──────────────────────────────────────────────
   _renderConcepts(el) {
-    let html = '<div class="concepts-grid">';
-    for (const cat of REVISION_CATEGORIES) {
-      html += `
-        <div class="concept-category" style="--cat-color:${cat.color}">
-          <div class="concept-cat-header" data-cat-id="${cat.id}">
-            <div class="concept-cat-icon" style="background:${cat.color}20;color:${cat.color}">${cat.icon}</div>
-            <div>
-              <div class="concept-cat-title">${cat.title}</div>
-              <div class="concept-cat-count">${cat.topics.length} terms</div>
-            </div>
-            <svg class="concept-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </div>
-          <div class="concept-topics-list" id="topics-${cat.id}" style="display:none;">
-            ${cat.topics.map((t, i) => `
-              <div class="concept-topic" style="animation-delay:${i * 0.03}s">
-                <div class="concept-term">${t.term}</div>
-                <div class="concept-def">${t.definition}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>`;
-    }
-    html += '</div>';
-    el.innerHTML = html;
+    el.innerHTML = `
+      <div class="concepts-search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--text-muted)"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="concepts-search" placeholder="Search terms, e.g. &quot;Mono&quot;, &quot;@Transactional&quot;, &quot;N+1&quot;..." autocomplete="off" spellcheck="false">
+        <span id="concepts-match-count" style="color:var(--text-muted);font-size:0.78rem;white-space:nowrap;"></span>
+      </div>
+      <div class="concepts-grid" id="concepts-grid"></div>
+    `;
 
-    // Accordion toggle
-    el.querySelectorAll('.concept-cat-header').forEach(header => {
-      header.addEventListener('click', () => {
-        const list = document.getElementById('topics-' + header.dataset.catId);
-        const chevron = header.querySelector('.concept-chevron');
-        const isOpen = list.style.display !== 'none';
-        list.style.display = isOpen ? 'none' : 'block';
-        chevron.style.transform = isOpen ? 'rotate(0)' : 'rotate(180deg)';
+    const renderAll = (filter) => {
+      const grid = el.querySelector('#concepts-grid');
+      const countEl = el.querySelector('#concepts-match-count');
+      const q = (filter || '').toLowerCase().trim();
+      let totalMatches = 0;
+      let html = '';
+
+      for (const cat of REVISION_CATEGORIES) {
+        const matched = q
+          ? cat.topics.filter(t => t.term.toLowerCase().includes(q) || t.definition.toLowerCase().includes(q))
+          : cat.topics;
+        if (q && matched.length === 0) continue;
+        totalMatches += matched.length;
+        const isOpen = q ? true : false;
+        html += `
+          <div class="concept-category" style="--cat-color:${cat.color}">
+            <div class="concept-cat-header" data-cat-id="${cat.id}">
+              <div class="concept-cat-icon" style="background:${cat.color}20;color:${cat.color}">${cat.icon}</div>
+              <div>
+                <div class="concept-cat-title">${cat.title}</div>
+                <div class="concept-cat-count">${q ? matched.length + ' match' + (matched.length !== 1 ? 'es' : '') : cat.topics.length + ' terms'}</div>
+              </div>
+              <svg class="concept-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:${isOpen ? 'rotate(180deg)' : 'rotate(0)'}"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="concept-topics-list" id="topics-${cat.id}" style="display:${isOpen ? 'block' : 'none'};">
+              ${matched.map((t, i) => `
+                <div class="concept-topic" style="animation-delay:${i * 0.02}s">
+                  <div class="concept-term">${q ? t.term.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>') : t.term}</div>
+                  <div class="concept-def">${q ? t.definition.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>') : t.definition}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>`;
+      }
+
+      if (q && totalMatches === 0) {
+        html = `<div style="text-align:center;padding:3rem;color:var(--text-muted)">No terms matching "<strong style="color:var(--text-primary)">${q}</strong>"</div>`;
+      }
+
+      grid.innerHTML = html;
+      if (q) countEl.textContent = totalMatches + ' result' + (totalMatches !== 1 ? 's' : '');
+      else countEl.textContent = '';
+
+      // Accordion toggle
+      grid.querySelectorAll('.concept-cat-header').forEach(header => {
+        header.addEventListener('click', () => {
+          const list = document.getElementById('topics-' + header.dataset.catId);
+          const chevron = header.querySelector('.concept-chevron');
+          const isExpanded = list.style.display !== 'none';
+          list.style.display = isExpanded ? 'none' : 'block';
+          chevron.style.transform = isExpanded ? 'rotate(0)' : 'rotate(180deg)';
+        });
       });
+    };
+
+    renderAll('');
+
+    let debounceTimer;
+    el.querySelector('#concepts-search').addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => renderAll(e.target.value), 180);
     });
   }
 
@@ -148,18 +174,34 @@ export class RevisionModule {
 
   // ─── MCQ QUIZ TAB ─────────────────────────────────────────────
   _renderMCQ(el) {
+    const diffCount = (qs, d) => qs.filter(q => q.difficulty === d).length;
     let html = `
       <div class="mcq-intro" id="mcq-intro">
-        <h2 style="font-size:1.2rem;margin-bottom:0.5rem;">Interview Quiz Engine</h2>
-        <p style="color:var(--text-secondary);margin-bottom:1.5rem;font-size:0.9rem;">Test your knowledge with curated interview questions. Select a category to begin.</p>
+        <div class="mcq-intro-head">
+          <div>
+            <div class="mcq-intro-title">Interview Practice</div>
+            <div class="mcq-intro-sub">Curated questions across topics. Pick a category to start.</div>
+          </div>
+          <div class="mcq-total-badge">${MCQ_CATEGORIES.reduce((s,c)=>s+c.questions.length,0)} Questions</div>
+        </div>
         <div class="mcq-categories-grid">
-          ${MCQ_CATEGORIES.map(cat => `
+          ${MCQ_CATEGORIES.map(cat => {
+            const easy = diffCount(cat.questions, 'easy');
+            const med  = diffCount(cat.questions, 'medium');
+            const hard = diffCount(cat.questions, 'hard');
+            return `
             <div class="mcq-category-card" data-cat-id="${cat.id}" style="--cat-color:${cat.color}">
-              <div class="mcq-cat-icon" style="background:${cat.color}20;color:${cat.color}">${cat.icon}</div>
-              <div class="mcq-cat-title">${cat.title}</div>
-              <div class="mcq-cat-count">${cat.questions.length} Questions</div>
-            </div>
-          `).join('')}
+              <div class="mcq-cat-icon-wrap">
+                <div class="mcq-cat-icon" style="background:${cat.color}18;color:${cat.color}">${cat.icon}</div>
+                <div class="mcq-cat-title">${cat.title}</div>
+              </div>
+              <div class="mcq-cat-diff">
+                ${easy  ? `<span class="mcq-diff easy">${easy}E</span>`  : ''}
+                ${med   ? `<span class="mcq-diff med">${med}M</span>`    : ''}
+                ${hard  ? `<span class="mcq-diff hard">${hard}H</span>` : ''}
+              </div>
+            </div>`;
+          }).join('')}
         </div>
       </div>
       <div id="mcq-quiz-area" style="display:none;"></div>
@@ -314,23 +356,37 @@ export class RevisionModule {
 
   // ─── RESOURCES TAB ────────────────────────────────────────────
   _renderResources(el) {
-    el.innerHTML = `
-      <div class="resources-section">
-        <h2 style="font-size:1.1rem;margin-bottom:1rem;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-          Curated Learning Resources
-        </h2>
-        <div class="resources-grid">
-          ${RESOURCES.map(r => `
-            <a href="${r.url}" target="_blank" rel="noopener noreferrer" class="resource-card">
-              <div class="resource-tag">${r.tag}</div>
-              <div class="resource-title">${r.title}</div>
-              <div class="resource-url">${r.url.replace(/https?:\/\/(www\.)?/, '').split('/')[0]}</div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="resource-arrow"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-            </a>
-          `).join('')}
+    const tags = [...new Set(RESOURCES.map(r => r.tag))];
+    let activeTag = 'All';
+
+    const render = () => {
+      const filtered = activeTag === 'All' ? RESOURCES : RESOURCES.filter(r => r.tag === activeTag);
+      el.innerHTML = `
+        <div class="resources-section">
+          <div class="resources-tag-bar">
+            ${['All', ...tags].map(t => `
+              <button class="resource-tag-filter ${t === activeTag ? 'active' : ''}" data-tag="${t}">${t}</button>
+            `).join('')}
+          </div>
+          <div class="resources-grid">
+            ${filtered.map(r => `
+              <a href="${r.url}" target="_blank" rel="noopener noreferrer" class="resource-card">
+                <div class="resource-card-top">
+                  <span class="resource-tag" style="background:${r.tagColor}18;color:${r.tagColor};border-color:${r.tagColor}30">${r.tag}</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);flex-shrink:0"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                </div>
+                <div class="resource-title">${r.title}</div>
+                <div class="resource-desc">${r.desc}</div>
+                <div class="resource-url">${r.url.replace(/https?:\/\/(www\.)?/, '').split('/')[0]}</div>
+              </a>
+            `).join('')}
+          </div>
         </div>
-      </div>
-    `;
+      `;
+      el.querySelectorAll('.resource-tag-filter').forEach(btn => {
+        btn.addEventListener('click', () => { activeTag = btn.dataset.tag; render(); });
+      });
+    };
+    render();
   }
 }

@@ -12,8 +12,15 @@ export class WorldMapSystem {
     const wrapper = document.createElement('div');
     wrapper.className = 'world-map-container';
     wrapper.innerHTML = `
-      <h1 class="world-map-title">SpringQuest Curriculum</h1>
-      <p class="world-map-subtitle">Welcome back, ${this.gsm.getState()?.playerName || 'Developer'}. Select a module to begin.</p>
+      <div class="world-map-head">
+        <div>
+          <h1 class="world-map-title">Curriculum</h1>
+          <p class="world-map-subtitle">Welcome back, <strong style="color:var(--text-primary)">${this.gsm.getState()?.playerName || 'Developer'}</strong>. Select a module to continue.</p>
+        </div>
+        <div class="world-map-meta">
+          <span class="world-map-badge">${this.worlds.length} Modules</span>
+        </div>
+      </div>
       <div class="worlds-grid" id="worlds-grid"></div>
     `;
     container.appendChild(wrapper);
@@ -61,11 +68,11 @@ export class WorldMapSystem {
         <div class="mission-list-header">
           <div>
             <div class="mission-list-title">${world.name}</div>
-            <div style="font-size:0.85rem;color:var(--text-muted);margin-top:0.2rem;">${world.description}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.15rem;">${world.description}</div>
           </div>
-          <button class="close-btn" id="close-mission-list">&times;</button>
+          <button class="close-btn" id="close-mission-list" aria-label="Close">&times;</button>
         </div>
-        <div id="mission-items"></div>
+        <div class="mission-items-scroll" id="mission-items"></div>
       </div>
     `;
     document.body.appendChild(overlay);
